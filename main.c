@@ -5,6 +5,9 @@
 #include "cJSON/cJSON.h"
 #include "simpleHTTPclient/HTTPclient.h"
 #include "menu/menu.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 char *basic_common_headers[8] = 
 {
@@ -70,14 +73,14 @@ void profile_menu()
         ({
             "Search by Handle",
             "Search by GameAccountId",
-            "Update Handle",
+            "Update Profile",
             "Back to main menu"
         }),
         {
             case 1:
             case 2 : {
                 char input[81];
-                printf("\033[H\033[J");
+                clear_console();
                 printf("\nenter the value > " GREEN);
                 scanf("%80s", input);
                 getchar();
@@ -130,11 +133,12 @@ void profile_menu()
             }
             case 3: {
                 char input[81];
-                printf("\033[H\033[J");
-                printf("\nenter the value > " GREEN);
+                clear_console();
+                printf("\nenter new handle > " GREEN);
                 scanf("%80s", input);
                 getchar();
                 printf(RESET);
+
 
                 char input1[1024];
                 printf("\nenter ur acc token > " GREEN);
@@ -316,7 +320,7 @@ void NConnect_menu()
             "Back to main menu"
         }), {
             case 1:{
-                printf("\033[H\033[J");
+                clear_console();
                 char input[101];
                 printf("\nenter ur email addres > " GREEN);
                 scanf("%100s", input);
@@ -372,7 +376,7 @@ void NConnect_menu()
                 cJSON_Delete(resp1);
             }
             case 2:{
-                printf("\033[H\033[J");
+                clear_console();
                 char input[1025];
                 printf("\nenter ur auth token > " GREEN);
                 scanf("%1024s", input);
@@ -387,6 +391,10 @@ void NConnect_menu()
 
 int main()
 {
+    #ifdef _WIN32
+    SetConsoleOutputCP(65001);
+    #endif
+
     http_client_init();
 
 
