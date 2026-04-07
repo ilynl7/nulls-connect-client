@@ -20,16 +20,10 @@ void http_client_destroy()
     curl_global_cleanup();
 }
 
-struct data
-{
-    char *memory;
-    size_t size;
-};
-
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     size_t realsize = size * nmemb;
-    struct data *mem = (struct data *)userp;
+    data_t *mem = (data_t *)userp;
 
     char *ptr = realloc(mem->memory, mem->size + realsize + 1);
 
@@ -52,9 +46,7 @@ cJSON *GET_request_json(char *url, char *headers_arg[])
         i++;
     }
 
-    struct data chunk;
-    chunk.memory = malloc(1);
-    chunk.size = 0;
+    data_t chunk = { .memory = malloc(1), .size = 0 };
 
     CURLcode res;
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -89,9 +81,7 @@ cJSON *POST_request_json(char *url, char *headers_arg[], char data[])
         i++;
     }
 
-    struct data chunk;
-    chunk.memory = malloc(1);
-    chunk.size = 0;
+    data_t chunk = { .memory = malloc(1), .size = 0 };
 
     CURLcode res;
     curl_easy_setopt(curl, CURLOPT_URL, url);

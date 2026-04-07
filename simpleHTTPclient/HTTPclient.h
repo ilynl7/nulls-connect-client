@@ -4,6 +4,11 @@
 #include "../cJSON/cJSON.h"
 #include <curl/curl.h>
 
+typedef struct {
+    char *memory;
+    size_t size;
+} data_t;
+
 int http_client_init();
 
 void http_client_destroy();
