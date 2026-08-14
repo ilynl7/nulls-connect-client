@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nulls Connect Explorer — demo showcase</title>
+<meta name="description" content="Static showcase for Nulls Connect Explorer, a web-based API explorer and tooling platform for the Nulls Connect ecosystem. The interactive app requires the deployed Node backend." />
+<style>
+  :root {
+    --bg: #0b0e13;
+    --bg-2: #10151d;
+    --panel: #151b25;
+    --panel-2: #1a2230;
+    --line: #243042;
+    --text: #e6ecf4;
+    --muted: #93a3b8;
+    --accent: #4cc9f0;
+    --accent-2: #7a5cff;
+    --ok: #34d399;
+    --warn: #fbbf24;
+    --err: #f87171;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  code, pre, .mono { font-family: var(--mono); }
+
+  /* ---------- nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(11, 14, 19, .85);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .wrap { display: flex; align-items: center; gap: 24px; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .3px; }
+  .brand .mark {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center; font-size: 14px; color: #06121a;
+  }
+  .brand small { color: var(--muted); font-weight: 400; }
+  nav .links { margin-left: auto; display: flex; gap: 18px; align-items: center; }
+  nav .links a { color: var(--muted); text-decoration: none; font-size: 14px; }
+  nav .links a:hover { color: var(--text); }
+  .btn {
+    display: inline-block; padding: 9px 18px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer;
+    border: 1px solid transparent; transition: transform .08s ease, box-shadow .15s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #06121a; box-shadow: 0 4px 18px rgba(74, 201, 240, .25); }
+  .btn.ghost { border-color: var(--line); color: var(--text); background: transparent; }
+  .btn.ghost:hover { border-color: var(--muted); }
+
+  /* ---------- hero ---------- */
+  header.hero { padding: 96px 0 72px; text-align: center; position: relative; overflow: hidden; }
+  header.hero::before {
+    content: ""; position: absolute; inset: -40% -20% auto;
+    height: 480px; background: radial-gradient(ellipse at 50% 0%, rgba(74, 201, 240, .14), rgba(122, 92, 255, .08) 55%, transparent 75%);
+    pointer-events: none;
+  }
+  .hero .wrap { position: relative; }
+  .hero .kicker {
+    display: inline-block; padding: 5px 12px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--accent); font-size: 13px;
+    font-family: var(--mono); margin-bottom: 22px; background: var(--panel);
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 58px); line-height: 1.08; letter-spacing: -.5px; }
+  .hero h1 span { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.lead { max-width: 680px; margin: 22px auto 0; color: var(--muted); font-size: 17px; }
+  .hero .cta { margin-top: 34px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .hero .note { margin-top: 18px; color: var(--muted); font-size: 13px; }
+  .hero .note code { color: var(--warn); }
+
+  /* ---------- sections ---------- */
+  section { padding: 64px 0; }
+  section.alt { background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .sec-head { max-width: 720px; margin-bottom: 36px; }
+  .sec-head .eyebrow { font-family: var(--mono); color: var(--accent); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+  .sec-head h2 { font-size: clamp(24px, 3.4vw, 34px); margin-top: 8px; letter-spacing: -.3px; }
+  .sec-head p { color: var(--muted); margin-top: 10px; }
+
+  /* ---------- feature grid ---------- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px; transition: border-color .15s ease, transform .15s ease;
+  }
+  .card:hover { border-color: #33445e; transform: translateY(-2px); }
+  .card .icon { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-size: 18px; background: var(--panel-2); border: 1px solid var(--line); margin-bottom: 14px; }
+  .card h3 { font-size: 16px; }
+  .card p { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .card ul { list-style: none; margin-top: 10px; }
+  .card li { color: var(--muted); font-size: 13px; padding: 3px 0 3px 18px; position: relative; }
+  .card li::before { content: "›"; position: absolute; left: 2px; color: var(--accent); }
+
+  /* ---------- live vs demo ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--panel); border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  th { background: var(--panel-2); font-size: 12px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; font-family: var(--mono); }
+  .badge.ok { background: rgba(52, 211, 153, .12); color: var(--ok); }
+  .badge.warn { background: rgba(251, 191, 36, .12); color: var(--warn); }
+  .badge.info { background: rgba(74, 201, 240, .12); color: var(--accent); }
+
+  /* ---------- architecture ---------- */
+  .arch { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; }
+  .arch .node { flex: 1; min-width: 210px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .arch .node h4 { font-size: 14px; margin-bottom: 6px; }
+  .arch .node p { color: var(--muted); font-size: 13px; }
+  .arch .arrow { align-self: center; color: var(--accent); padding: 0 10px; font-size: 20px; }
+  .arch-note { margin-top: 18px; color: var(--muted); font-size: 14px; }
+  .arch-note code { color: var(--text); }
+
+  /* ---------- try-it ---------- */
+  .try { max-width: 640px; margin: 0 auto; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 28px; }
+  .try h3 { font-size: 17px; margin-bottom: 4px; }
+  .try .sub { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+  .try .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .try input, .try select {
+    flex: 1; min-width: 180px; padding: 11px 12px; border-radius: 8px;
+    background: var(--bg-2); border: 1px solid var(--line); color: var(--text); font-size: 14px;
+  }
+  .try input:focus, .try select:focus { outline: none; border-color: var(--accent); }
+  .try .msg { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 14px; background: rgba(251, 191, 36, .08); border: 1px solid rgba(251, 191, 36, .35); color: var(--warn); }
+  .try .msg.show { display: block; }
+
+  /* ---------- quick start ---------- */
+  pre {
+    background: #0d1117; border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px; overflow-x: auto; font-size: 13.5px; line-height: 1.7; color: #d7e2ee;
+  }
+  pre .c { color: #6b7d94; }
+  pre .k { color: var(--accent); }
+
+  footer { border-top: 1px solid var(--line); padding: 40px 0; color: var(--muted); font-size: 14px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 720px) {
+    nav .links a:not(.btn) { display: none; }
+    header.hero { padding: 64px 0 48px; }
+    .arch .arrow { transform: rotate(90deg); padding: 6px 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="mark">◈</span> Nulls Connect Explorer <small>demo</small></a>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#live">What works here</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#try">Try it</a>
+      <a href="#deploy">Deploy</a>
+      <a class="btn ghost" href="https://github.com/ilyln7/nulls-connect-explorer" target="_blank" rel="noopener">View source</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <span class="kicker">static showcase · interactive app requires the backend</span>
+    <h1>Explore the <span>Nulls Connect</span> system like never before.</h1>
+    <p class="lead">
+      A web-based API explorer and tooling platform rebuilt from the C reference client —
+      account linking, per-player game tokens, profile editing, hidden lookup modes,
+      anonymous identity namespaces, avatars, OAuth and admin surfaces.
+    </p>
+    <div class="cta">
+      <a class="btn primary" href="#try">See it in action</a>
+      <a class="btn ghost" href="#deploy">Deploy your own</a>
+    </div>
+    <p class="note">This page is a static showcase. Live API calls are marked <code>requires backend</code> — GitHub Pages cannot proxy the CORS-less upstream APIs.</p>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Feature map</div>
+      <h2>What the platform actually does</h2>
+      <p>Every capability below is implemented and verified in the application — none of it is fabricated.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="icon">🔐</div>
+        <h3>Authentication</h3>
+        <p>Email + PIN sign-in via <code>/auth/login.v2</code> (same <code>game=laser&locale=ru</code> defaults as the C client), or import an existing token.</p>
+        <ul>
+          <li>Server-side sessions, HttpOnly cookie</li>
+          <li>Bearer token never reaches the browser</li>
+          <li>Centralized automatic auth on every request</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="icon">🎮</div>
+        <h3>Accounts &amp; bindings</h3>
+        <p>Full linked-account management for the connected identity.</p>
+        <ul>
+          <li>List linked players (<code>/games/links</code>)</li>
+          <li>Per-player game tokens (<code>/games/token</code>)</li>
+          <li>Bind, transfer, refresh/revoke tokens</li>
+          <li>Settings + OAuth client tools</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="icon">🪪</div>
+        <h3>Profiles</h3>
+        <p>Look up and edit profiles on profiles.dnull.xyz — including undocumented capabilities.</p>
+        <ul>
+          <li>Handle / GameAccountId / hidden AccountId lookup</li>
+          <li>Game-token profile editor with avatar picker</li>
+          <li>Hidden <code>block_friends</code> parameter</li>
+          <li>Identity namespace explorer (bound vs anonymous)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="icon">🔍</div>
+        <h3>Discovery workspace</h3>
+        <p>An operation registry with parameters, enums, errors and evidence for every endpoint.</p>
+        <ul>
+          <li>Game identifier registry + live probing</li>
+          <li>Image ref resolution (catalog, redirect, CDN)</li>
+          <li>Avatar catalog grid</li>
+          <li>Evidence-backed knowledge base</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="icon">🛡️</div>
+        <h3>Admin surface</h3>
+        <p>Privileged account administration — gated behind admin tokens.</p>
+        <ul>
+          <li>Whois by uid / email / scid</li>
+          <li>Account event timelines</li>
+          <li>Find by Telegram / VK</li>
+          <li>Admin bind / unbind</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="icon">🧰</div>
+        <h3>Developer tools</h3>
+        <p>Everything you need to work against the API safely.</p>
+        <ul>
+          <li>Per-session activity log, tokens masked server-side</li>
+          <li>Raw JSON views + on-demand token reveal</li>
+          <li>Human-readable error catalog</li>
+          <li>Input validation + rate limiting</li>
+          <li>Live upstream diagnostics</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="live">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Honest labeling</div>
+      <h2>What works on this page vs. the real app</h2>
+      <p>GitHub Pages is static hosting: it cannot run the Node backend that proxies the CORS-less Nulls Connect APIs. This demo shows the design and documents the platform — interactive features need the deployed backend.</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Capability</th><th>On this demo</th><th>In the full app</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Project overview, features, architecture</td><td><span class="badge ok">live</span> this page</td><td><span class="badge ok">yes</span></td></tr>
+        <tr><td>Email + PIN login, token import</td><td><span class="badge warn">requires backend</span></td><td><span class="badge ok">yes</span></td></tr>
+        <tr><td>Linked accounts, game tokens, bind/transfer</td><td><span class="badge warn">requires backend</span></td><td><span class="badge ok">yes</span></td></tr>
+        <tr><td>Profile lookup &amp; game-token profile editor</td><td><span class="badge warn">requires backend</span></td><td><span class="badge ok">yes</span></td></tr>
+        <tr><td>Identity namespace explorer (public lookups)</td><td><span class="badge warn">requires backend</span></td><td><span class="badge ok">yes</span></td></tr>
+        <tr><td>Avatar catalog &amp; image ref resolution</td><td><span class="badge warn">requires backend</span></td><td><span class="badge ok">yes</span></td></tr>
+        <tr><td>Game registry probing, diagnostics</td><td><span class="badge warn">requires backend</span></td><td><span class="badge ok">yes</span></td></tr>
+        <tr><td>Admin endpoints (whois, events, find, bind)</td><td><span class="badge warn">requires backend</span></td><td><span class="badge ok">yes</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="architecture">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">How it works</div>
+      <h2>Architecture</h2>
+      <p>The browser only ever talks to the same-origin backend; every upstream call is proxied server-side, with the bearer token attached automatically and never sent to the browser.</p>
+    </div>
+    <div class="arch">
+      <div class="node">
+        <h4>🌐 Browser</h4>
+        <p>Static frontend (<code>index.html</code>, <code>app.js</code>, <code>style.css</code>). No CORS problem, no tokens.</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node">
+        <h4>⚙️ proxy.mjs</h4>
+        <p>Zero-dependency Node backend: static server, internal API, centralized authenticated client, rate limiting, validation, error mapping, activity log.</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node">
+        <h4>☁️ Upstream APIs</h4>
+        <p><code>connect.nulls.gg/api</code> (auth, accounts, games, OAuth, admin) · <code>profiles.dnull.xyz</code> (profiles, avatars) · <code>files.dnull.xyz</code> (avatars).</p>
+      </div>
+    </div>
+    <p class="arch-note">
+      Deep-dive example: profile <code>/update</code> rejects the account token (403) but accepts a
+      per-player <strong>game token</strong>. The backend mints it from <code>/games/token</code> first — mirroring the
+      C client — so the browser never handles it.
+    </p>
+  </div>
+</section>
+
+<section class="alt" id="try">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Try it</div>
+      <h2>What a live lookup looks like</h2>
+      <p>This form is a faithful mock of the app's profile lookup — submitting it explains what the real backend would do.</p>
+    </div>
+    <div class="try">
+      <h3>Profile lookup</h3>
+      <p class="sub">In the full app this queries <code>profiles.dnull.xyz</code> through the backend proxy. Here it demonstrates the request shape.</p>
+      <div class="row">
+        <select id="try-game"><option>laser</option><option>0</option><option>nullsbrawl</option><option>duo</option></select>
+        <select id="try-type"><option>Handle</option><option>GameAccountId</option><option>AccountId (hidden)</option></select>
+        <input id="try-key" placeholder="handle or player id" value="highvexy" />
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="try-go" style="border:none">Look up</button>
+      </div>
+      <div class="msg" id="try-msg"></div>
+    </div>
+  </div>
+</section>
+
+<section id="deploy">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Deploy</div>
+      <h2>Run the real thing in 3 commands</h2>
+      <p>Zero dependencies, no build step, any Node ≥ 18 host. The server respects <code>PORT</code> and binds <code>0.0.0.0</code>.</p>
+    </div>
+    <pre><code><span class="c"># on any Node host (Render, Railway, Fly, VPS, Docker…)</span>
+git clone https://github.com/ilyln7/nulls-connect-explorer.git
+cd nulls-connect-explorer
+PORT=3000 node proxy.mjs
+
+<span class="c"># optional: build the original C CLI (needs gcc + libcurl)</span>
+npm run build:c
+./output/main</code></pre>
+    <p class="arch-note" style="margin-top:16px">Environment variables: <code>PORT</code> (default 3000), <code>NC_API_UPSTREAM</code>, <code>NC_PROFILES_UPSTREAM</code>. See <a href="https://github.com/ilyln7/nulls-connect-explorer#readme" target="_blank" rel="noopener">the README</a> for full deployment and troubleshooting guides.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Nulls Connect Explorer — independent tooling for the Nulls Connect APIs. Not affiliated with the service.</span>
+    <span><a href="https://github.com/ilyln7/nulls-connect-explorer" target="_blank" rel="noopener">GitHub</a> · <a href="#top">Back to top ↑</a></span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var btn = document.getElementById("try-go");
+    var msg = document.getElementById("try-msg");
+    var key = document.getElementById("try-key");
+    var game = document.getElementById("try-game");
+    var type = document.getElementById("try-type");
+    btn.addEventListener("click", function () {
+      var value = (key.value || "").trim();
+      if (!value) {
+        msg.textContent = "Enter a handle or id first.";
+        msg.className = "msg show";
+        return;
+      }
+      msg.innerHTML = "The backend would request <code>" +
+        encodeURIComponent(game.value) + "/" + encodeURIComponent(value) +
+        "?lookup_type=" + encodeURIComponent(type.value.split(" ")[0]) +
+        "</code> on profiles.dnull.xyz. Live lookups need the deployed backend — this static demo can't proxy the API.";
+      msg.className = "msg show";
+    });
+  })();
+</script>
+</body>
+</html>

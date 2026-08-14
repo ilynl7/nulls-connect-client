@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nulls Connect Explorer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◈</span>
+      <div class="brand-text"><strong>Nulls Connect</strong><span>explorer</span></div>
+    </div>
+    <div class="search-wrap">
+      <input id="global-search" type="search" placeholder="Search games, operations, params, errors, fields…" autocomplete="off" />
+      <div id="search-results" class="search-dropdown hidden"></div>
+    </div>
+    <label class="toggle" title="Show raw parameters, request metadata and JSON everywhere">
+      <input type="checkbox" id="adv-toggle" /> Advanced
+    </label>
+    <div class="session-pill" id="session-pill" title="">
+      <span class="dot" id="session-dot"></span>
+      <span id="session-label">checking…</span>
+    </div>
+  </header>
+
+  <nav id="nav" class="nav">
+    <button class="nav-btn" data-page="overview">Overview</button>
+    <button class="nav-btn" data-page="session">Session</button>
+    <button class="nav-btn" data-page="explorer">Explorer</button>
+    <button class="nav-btn" data-page="account">Account</button>
+    <button class="nav-btn" data-page="profiles">Profiles</button>
+    <button class="nav-btn" data-page="admin">Admin</button>
+    <button class="nav-btn" data-page="history">History</button>
+  </nav>
+
+  <main id="main">
+
+    <!-- ============================== OVERVIEW ============================== -->
+    <section class="page" id="page-overview">
+      <div class="page-head">
+        <h1>Overview</h1>
+        <p class="sub">Live diagnostics, capability map and registry snapshot for the Nulls Connect system.</p>
+      </div>
+      <div class="status-strip" id="ov-status"></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3>Capability map</h3><span class="hint">groups of discovered operations</span></div>
+          <div id="ov-capmap" class="empty-hint">Loading…</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Registry snapshot</h3><a class="link" data-goto="explorer">open explorer →</a></div>
+          <div id="ov-registry" class="empty-hint">Loading…</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Recent requests</h3><a class="link" data-goto="history">view all →</a></div>
+        <div id="ov-recent" class="empty-hint">Nothing logged yet.</div>
+      </div>
+    </section>
+
+    <!-- ============================== SESSION ============================== -->
+    <section class="page" id="page-session">
+      <div class="page-head">
+        <h1>Session</h1>
+        <p class="sub">Identity and authentication. The bearer token lives server-side and is attached to every authenticated request automatically.</p>
+      </div>
+      <div id="ses-panel"></div>
+      <div id="ses-expired" class="hidden"></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3>Sign in / register</h3></div>
+          <form id="login-form" class="form" autocomplete="off">
+            <label>Email
+              <input id="login-email" name="email" type="email" placeholder="you@example.com" required />
+            </label>
+            <div class="form-row">
+              <label>Game
+                <select id="login-game"><option value="laser">laser</option></select>
+              </label>
+              <label>Locale
+                <select id="login-locale"><option value="ru">ru</option><option value="en">en</option></select>
+              </label>
+            </div>
+            <label class="check"><input id="login-register" type="checkbox" /> Register if this email doesn't exist yet</label>
+            <button type="submit" class="btn primary" id="login-submit">Send PIN email</button>
+          </form>
+          <div id="pin-box" class="hidden">
+            <hr />
+            <p class="hint">A 6-digit PIN was emailed to <strong id="pin-email"></strong>.</p>
+            <form id="pin-form" class="form" autocomplete="off">
+              <label>PIN code <input id="pin-input" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456" required /></label>
+              <button type="submit" class="btn primary" id="pin-submit">Confirm and connect</button>
+            </form>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Import existing token</h3></div>
+          <p class="hint">Paste a bearer token (e.g. from the C CLI). It is stored server-side only.</p>
+          <form id="import-form" class="form" autocomplete="off">
+            <label>Bearer token <textarea id="import-token" rows="3" placeholder="paste token…" required></textarea></label>
+            <label>Email (optional, for display) <input id="import-email" type="email" placeholder="you@example.com" /></label>
+            <button type="submit" class="btn primary" id="import-submit">Import token</button>
+          </form>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Token vault</h3><span class="hint">revealed on demand only</span></div>
+        <p class="hint">Reveal the session bearer token if you need it for an external tool (like the C CLI). Anyone with it can act as this account.</p>
+        <button class="btn" id="ses-reveal-token">Reveal token</button>
+        <div id="ses-token-result"></div>
+      </div>
+    </section>
+
+    <!-- ============================== EXPLORER ============================== -->
+    <section class="page" id="page-explorer">
+      <div class="page-head">
+        <h1>Explorer</h1>
+        <p class="sub">Discovery workspace: game registry, image reference resolution and the full operation surface.</p>
+      </div>
+      <div class="tabs" id="exp-tabs">
+        <button class="tab active" data-tab="games">Game registry</button>
+        <button class="tab" data-tab="images">Image refs</button>
+        <button class="tab" data-tab="ops">Operations</button>
+      </div>
+
+      <!-- Games -->
+      <div class="tab-panel" id="exp-games">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>Game registry</h3><span class="hint">identifiers found in the implementation</span></div>
+            <div id="games-list" class="empty-hint">Loading…</div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Probe a game identifier</h3></div>
+            <p class="hint">Sends a read-only <span class="mono">/games/links?game=…</span> request with your session token. If the API doesn't recognize the value you get <span class="mono">unknown_game</span>; a 200 means it's a live game. Requires a connected session.</p>
+            <form id="probe-game-form" class="form" autocomplete="off">
+              <label>Game identifier
+                <input id="probe-game-input" placeholder="laser" maxlength="40" required />
+              </label>
+              <button type="submit" class="btn primary" id="probe-game-submit">Probe</button>
+            </form>
+            <div id="probe-game-result"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Probe history</h3><span class="hint">values you've tested this session</span></div>
+          <div id="probe-history" class="empty-hint">No probes yet.</div>
+        </div>
+      </div>
+
+      <!-- Images -->
+      <div class="tab-panel hidden" id="exp-images">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>Image ref explorer</h3></div>
+            <p class="hint">Resolve an image reference (UUID) against the discovered avatar mechanisms: the public catalog (<span class="mono">/avatars</span>), the content redirect (<span class="mono">/avatars/{uuid}.png</span>) and the CDN (<span class="mono">files.dnull.xyz</span>).</p>
+            <form id="image-form" class="form" autocomplete="off">
+              <label>Image reference (UUID)
+                <input id="image-input" placeholder="83a9523b-d954-4311-a62e-3ca8971403e1" required />
+              </label>
+              <button type="submit" class="btn primary" id="image-submit">Resolve</button>
+            </form>
+            <div id="image-result"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Avatar catalog</h3><span class="hint">public, no auth</span></div>
+            <p class="hint">Every avatar UUID known to the profiles API, mapped to its PNG. Click to resolve.</p>
+            <div id="avatar-grid" class="empty-hint">Loading…</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Image mechanisms discovered</h3></div>
+          <div id="image-mechs" class="empty-hint">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Operations -->
+      <div class="tab-panel hidden" id="exp-ops">
+        <div class="ops-layout">
+          <div class="card ops-list">
+            <div class="card-head"><h3>Operations</h3></div>
+            <div id="ops-groups"></div>
+          </div>
+          <div class="card ops-detail">
+            <div id="ops-detail" class="empty-hint">Select an operation on the left.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== ACCOUNT ============================== -->
+    <section class="page" id="page-account">
+      <div class="page-head">
+        <h1>Account</h1>
+        <p class="sub">Linked game accounts, settings and binding management for the connected identity.</p>
+      </div>
+      <div id="acc-gate"></div>
+      <div id="acc-body" class="hidden">
+        <div class="toolbar">
+          <label class="inline">Game
+            <select id="acc-game"><option value="laser">laser</option></select>
+          </label>
+          <button class="btn" id="acc-reload">↻ Reload</button>
+          <button class="btn danger-outline" id="acc-refresh-all">Refresh all tokens</button>
+          <span class="spacer"></span>
+          <span class="hint" id="acc-count"></span>
+        </div>
+        <div id="acc-links" class="empty-hint">Loading…</div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>Settings</h3></div>
+            <p class="hint">Identity settings from <span class="mono">/settings/get</span>.</p>
+            <button class="btn" id="acc-settings-load">Load settings</button>
+            <div id="acc-settings-result"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Binding actions</h3></div>
+            <form id="acc-bind-form" class="form" autocomplete="off">
+              <label>Link account — bind token <input id="acc-bind-token" placeholder="bind token from the game client" required /></label>
+              <button type="submit" class="btn">Link account</button>
+            </form>
+            <div id="acc-bind-result"></div>
+            <hr />
+            <form id="acc-transfer-form" class="form" autocomplete="off">
+              <label class="warn-text">Transfer — destination token <input id="acc-transfer-dest" required /></label>
+              <label>Player ids (comma-separated) <input id="acc-transfer-ids" placeholder="12345,67890" required /></label>
+              <button type="submit" class="btn danger" id="acc-transfer-submit">Transfer bindings</button>
+            </form>
+            <div id="acc-transfer-result"></div>
+            <hr />
+            <button class="btn danger-outline" id="acc-unlink-tg">Unlink Telegram</button>
+            <div id="acc-unlink-result"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== PROFILES ============================== -->
+    <section class="page" id="page-profiles">
+      <div class="page-head">
+        <h1>Profiles</h1>
+        <p class="sub">Profile lookups and the per-player <span class="mono">game token</span> profile editor (profiles.dnull.xyz), plus the identity namespace explorer that reveals the hidden anonymous profiles behind the <span class="mono">{game}</span> path segment.</p>
+      </div>
+
+      <div id="prof-editor"></div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3>Look up profile</h3></div>
+          <p class="hint">Public. <span class="mono">lookup_type</span> is required (422 without it). The hidden AccountId mode accepts the full <span class="mono">profile:{n}</span> format.</p>
+          <form id="prof-lookup-form" class="form" autocomplete="off">
+            <div class="form-row">
+              <label>Game <select id="prof-game"><option value="laser">laser</option></select></label>
+              <label>Lookup type
+                <select id="prof-type">
+                  <option value="handle">Handle</option>
+                  <option value="account_id">AccountId <span class="badge warn">hidden</span></option>
+                  <option value="game_account_id">GameAccountId</option>
+                </select>
+              </label>
+            </div>
+            <label id="prof-key-label">Key <input id="prof-key" placeholder="handle or id" required /></label>
+            <button type="submit" class="btn primary" id="prof-lookup-submit">Look up</button>
+          </form>
+          <div id="prof-lookup-result"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Manual update (raw)</h3></div>
+          <p class="hint">Mirrors the C client (main.c case 3): the backend mints a per-player <span class="mono">game token</span> and uses it as the bearer for <span class="mono">POST /update</span> — the account token alone is rejected. Both <span class="mono">handle</span> and <span class="mono">image_ref</span> are required.</p>
+          <form id="prof-update-form" class="form" autocomplete="off">
+            <label>Player id <input id="prof-update-player" placeholder="198212843" required /></label>
+            <label>New handle <input id="prof-update-handle" maxlength="80" placeholder="new-handle" required /></label>
+            <label>Image ref (UUID) <input id="prof-update-image" value="83a9523b-d954-4311-a62e-3ca8971403e1" required /></label>
+            <label class="check adv-only" title="Hidden parameter — accepted by the API, not used by the C client"><input id="prof-update-block" type="checkbox" /> block_friends (hidden param)</label>
+            <button type="submit" class="btn primary" id="prof-update-submit">Update profile</button>
+          </form>
+          <div id="prof-update-result"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Identity namespace explorer</h3><span class="badge ok">public · read-only</span></div>
+        <p class="hint">The <span class="mono">{game}</span> path segment is a free-form namespace. <span class="mono">laser</span> resolves to the bound, editable profile (<span class="mono">profile:{n}</span>); <strong>any other segment</strong> auto-creates an anonymous identity (<span class="mono">anonymous:{segment}:{player_id}</span>) with a stable per-player auto handle and default avatar. <span class="mono">0</span> is the numeric alias of <span class="mono">nullsbrawl</span>. Anonymous handles are globally searchable via <span class="mono">lookup_type=Handle</span>.</p>
+        <form id="ns-form" class="form" autocomplete="off">
+          <div class="form-row">
+            <label>Player id <input id="ns-player" placeholder="198212843" required /></label>
+            <label>Namespaces (comma-separated) <input id="ns-games" value="laser,0,nullsbrawl,duo,solo" required /></label>
+          </div>
+          <div class="toolbar" style="margin:0">
+            <button type="submit" class="btn primary" id="ns-submit">Scan namespaces</button>
+            <span class="hint" style="margin:0">Tip: use your own player id to compare your bound profile against its anonymous aliases.</span>
+          </div>
+        </form>
+        <div id="ns-result"></div>
+      </div>
+    </section>
+
+    <!-- ============================== ADMIN ============================== -->
+    <section class="page" id="page-admin">
+      <div class="page-head">
+        <h1>Admin</h1>
+        <p class="sub"><span class="badge err">privileged</span> Account administration endpoints. Requires a token with admin privileges — otherwise <span class="mono">admin_access_denied</span>.</p>
+      </div>
+      <div id="admin-gate"></div>
+      <div id="admin-body" class="hidden">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>Whois — account lookup</h3></div>
+            <form id="admin-whois-form" class="form" autocomplete="off">
+              <label>uid <input id="admin-whois-uid" inputmode="numeric" placeholder="numeric uid" /></label>
+              <label>email <input id="admin-whois-email" type="email" placeholder="you@example.com" /></label>
+              <label>scid <input id="admin-whois-scid" placeholder="uuid" /></label>
+              <button type="submit" class="btn primary">Look up</button>
+            </form>
+            <div id="admin-whois-result"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Account events</h3></div>
+            <form id="admin-events-form" class="form" autocomplete="off">
+              <label>uid <input id="admin-events-uid" inputmode="numeric" required /></label>
+              <button type="submit" class="btn primary">Load events</button>
+            </form>
+            <div id="admin-events-result"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Find by Telegram</h3></div>
+            <form id="admin-tg-form" class="form" autocomplete="off">
+              <label>tg_user_ids <input id="admin-tg-ids" placeholder="123456,789012" required /></label>
+              <button type="submit" class="btn primary">Find</button>
+            </form>
+            <div id="admin-tg-result"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Find by VK</h3></div>
+            <form id="admin-vk-form" class="form" autocomplete="off">
+              <label>vk_user_id <input id="admin-vk-id" inputmode="numeric" required /></label>
+              <button type="submit" class="btn primary">Find</button>
+            </form>
+            <div id="admin-vk-result"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Admin bind</h3></div>
+            <form id="admin-bind-form" class="form" autocomplete="off">
+              <label>uid <input id="admin-bind-uid" inputmode="numeric" required /></label>
+              <label>player_id <input id="admin-bind-player" required /></label>
+              <div class="form-row">
+                <label>game <select id="admin-bind-game"><option value="laser">laser</option></select></label>
+                <label>sync <select id="admin-bind-sync"><option value="true">true</option><option value="false">false</option></select></label>
+              </div>
+              <button type="submit" class="btn primary">Bind</button>
+            </form>
+            <div id="admin-bind-result"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Admin unbind</h3></div>
+            <form id="admin-unbind-form" class="form" autocomplete="off">
+              <label>scid <input id="admin-unbind-scid" placeholder="uuid" required /></label>
+              <label>sync <select id="admin-unbind-sync"><option value="true">true</option><option value="false">false</option></select></label>
+              <button type="submit" class="btn danger">Unbind</button>
+            </form>
+            <div id="admin-unbind-result"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== HISTORY ============================== -->
+    <section class="page" id="page-history">
+      <div class="page-head">
+        <h1>History</h1>
+        <p class="sub">Every request made through this session — sanitized. Tokens, PINs and id_tokens are masked server-side.</p>
+      </div>
+      <div class="toolbar">
+        <input id="hist-filter" type="search" placeholder="Filter by endpoint, status, auth…" class="filter-input" />
+        <span class="spacer"></span>
+        <button class="btn" id="hist-rerun-diag">Run diagnostics</button>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Request log</h3><span class="hint" id="hist-count"></span></div>
+        <div id="hist-log" class="empty-hint">Nothing logged yet.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Nulls Connect Explorer — backend-proxied, server-side sessions, centralized auth, rate-limited.</span>
+  </footer>
+
+  <div id="toast-root"></div>
+  <div id="modal-root"></div>
+  <script src="app.js"></script>
+</body>
+</html>

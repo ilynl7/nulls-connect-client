@@ -1,0 +1,24 @@
+{
+  "name": "nulls-connect-explorer",
+  "version": "1.0.0",
+  "description": "Advanced web-based Nulls Connect API explorer and tooling platform, rebuilt from the C reference client.",
+  "license": "MIT",
+  "private": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node proxy.mjs",
+    "dev": "node proxy.mjs",
+    "build:c": "mkdir -p output && gcc ./main.c ./cJSON/cJSON.c ./simpleHTTPclient/HTTPclient.c ./menu/menu.c -lcurl -o ./output/main",
+    "check": "node --check proxy.mjs && node --check server.mjs && node --check app.js && node --check core.js && node --check views.js"
+  },
+  "keywords": [
+    "nulls-connect",
+    "nulls-gg",
+    "api-explorer",
+    "api-client",
+    "nodejs",
+    "reverse-engineering"
+  ]
+}

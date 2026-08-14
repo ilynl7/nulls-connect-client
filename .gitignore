@@ -1,0 +1,22 @@
+# Dependencies / build output
+node_modules/
+output/
+
+# Environment files — never commit real secrets
+.env
+.env.*
+!.env.example
+
+# Logs, temp and cache files
+*.log
+npm-debug.log*
+tmp/
+.cache/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
