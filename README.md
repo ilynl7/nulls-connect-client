@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-green.svg)](#requirements)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](#requirements)
-[![Demo](https://img.shields.io/badge/demo-GitHub%20Pages-blueviolet.svg)](https://ilyln7.github.io/nulls-connect-explorer/)
+[![Demo](https://img.shields.io/badge/demo-GitHub%20Pages-blueviolet.svg)](https://ilynl7.github.io/nulls-connect-explorer/)
 
 An advanced web-based **Nulls Connect API explorer and tooling platform**, rebuilt from the
 C reference client in this repository. It turns the mostly-undocumented Nulls Connect /
@@ -150,7 +150,7 @@ Key design decisions:
 ## Installation
 
 ```bash
-git clone https://github.com/ilyln7/nulls-connect-explorer.git
+git clone https://github.com/ilynl7/nulls-connect-explorer.git
 cd nulls-connect-explorer
 
 # Web platform — no dependencies to install; start directly:
@@ -257,7 +257,7 @@ Platform notes:
 GitHub Pages can only serve **static files** — it cannot run the backend that proxies the
 CORS-less Nulls Connect APIs. So the repository ships a static showcase at
 [`demo/index.html`](demo/index.html) (deployed to
-[ilyln7.github.io/nulls-connect-explorer](https://ilyln7.github.io/nulls-connect-explorer/) via
+[ilynl7.github.io/nulls-connect-explorer](https://ilynl7.github.io/nulls-connect-explorer/) via
 [`.github/workflows/pages.yml`](.github/workflows/pages.yml)).
 
 What the demo includes:
@@ -352,4 +352,4 @@ Contributions are welcome. Please:
 
 ## License
 
-[MIT](LICENSE) © 2026 ilyln7
+[MIT](LICENSE) © 2026 ilynl7
